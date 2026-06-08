@@ -515,4 +515,32 @@ app.mount("/static", StaticFiles(directory="static"), name="static")
 # ─── Run the server ──────────────────────────────────────────────
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=8000)
+    import socket
+
+    def _is_port_free(port: int) -> bool:
+        s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        try:
+            return s.connect_ex(('127.0.0.1', port)) != 0
+        finally:
+            s.close()
+
+    DEFAULT_PORT = int(os.getenv('PORT', '8000'))
+    port_to_try = DEFAULT_PORT
+    if not _is_port_free(port_to_try):
+        # find next available port in range
+        found = None
+        for p in range(port_to_try + 1, port_to_try + 101):
+            if _is_port_free(p):
+                found = p
+                break
+        if found is None:
+            print(f"ERROR: No free ports available in range {port_to_try}-{port_to_try+100}. Exiting.")
+            raise SystemExit(1)
+        print(f"Port {port_to_try} is in use — starting on port {found} instead.")
+        port_to_try = found
+
+    try:
+        uvicorn.run(app, host="0.0.0.0", port=port_to_try)
+    except Exception as e:
+        print(f"Failed to start server on port {port_to_try}: {e}")
+        raise

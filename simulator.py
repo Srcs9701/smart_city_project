@@ -39,22 +39,23 @@ def seed_data():
     """Generate 1 week of simulated parking data."""
     db = SessionLocal()
 
-    # Check if data already exists and is fresh (from today or later)
+    # Use current time for freshness checks
+    now = datetime.now()
+
+    # Check if data already exists and is fresh (within last hour)
     if db.query(ParkingLot).count() > 0:
-        # Get the latest event date
+        # Get the latest event
         latest_event = db.query(ParkingEvent).order_by(ParkingEvent.entry_time.desc()).first()
         if latest_event:
-            latest_event_date = latest_event.entry_time.date()
-            today = datetime.now().date()
-            
-            # If latest event is from today or later, data is fresh - skip regeneration
-            if latest_event_date >= today:
+            # If latest event is within the last hour, treat data as fresh
+            freshness_window = now - timedelta(hours=1)
+            if latest_event.entry_time >= freshness_window:
                 print("[OK] Data already exists and is current, skipping simulation.")
                 db.close()
                 return
-            
+
             # Data is stale - clear and regenerate
-            print("[*] Data is stale, regenerating...")
+            print("[*] Data is stale (older than 1 hour), regenerating...")
             db.query(ParkingEvent).delete()
             db.query(Alert).delete()
             db.query(ParkingSpace).delete()
