@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smart City Parking Management</title>
+    <meta name="description"
+        content="IoT-based Smart City Parking Management Dashboard - Real-time parking analytics and monitoring">
+    <link rel="stylesheet" href="/static/style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+</head>
+
+<body>
+
+    <!-- Header -->
+    <header id="main-header">
+        <div class="header-content">
+            <div class="logo">
+                <span class="logo-icon">🅿️</span>
+                <div>
+                    <h1>Smart City Parking</h1>
+                    <p class="subtitle">IoT-Based Parking Management System</p>
+                </div>
+            </div>
+            <div class="header-status">
+                <a id="admin-link" href="/admin" style="margin-right: 1rem; color: #3b82f6; text-decoration: none; padding: 0.5rem 1rem; border: 1px solid #3b82f6; border-radius: 6px; transition: all 0.3s ease;" onmouseover="this.style.background='rgba(59, 130, 246, 0.1)'" onmouseout="this.style.background='transparent'">🔐 Admin</a>
+                <span class="live-dot"></span>
+                <span id="last-updated">Loading...</span>
+            </div>
+        </div>
+    </header>
+
+    <main>
+        <!-- Summary Cards -->
+        <section id="summary-section" class="section">
+            <h2 class="section-title">📊 Real-Time Overview</h2>
+            <p class="section-subtitle">Live snapshot of current parking occupancy across all lots</p>
+            <div class="cards-grid">
+                <div class="card card-total" id="card-total">
+                    <div class="card-icon">🏗️</div>
+                    <div class="card-value" id="total-spaces">--</div>
+                    <div class="card-label">Total Spaces</div>
+                </div>
+                <div class="card card-occupied" id="card-occupied">
+                    <div class="card-icon">🚗</div>
+                    <div class="card-value" id="occupied-spaces">--</div>
+                    <div class="card-label">Occupied</div>
+                </div>
+                <div class="card card-available" id="card-available">
+                    <div class="card-icon">✅</div>
+                    <div class="card-value" id="available-spaces">--</div>
+                    <div class="card-label">Available</div>
+                </div>
+                <div class="card card-violations" id="card-violations">
+                    <div class="card-icon">⚠️</div>
+                    <div class="card-value" id="overstay-count">--</div>
+                    <div class="card-label">Overstay Violations</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Lot-wise Status -->
+        <section id="lots-section" class="section">
+            <h2 class="section-title">🏢 Parking Lot Status <span class="badge-live">● LIVE</span></h2>
+            <p class="section-subtitle">Current real-time occupancy of each parking lot</p>
+            <div class="lots-grid" id="lots-grid">
+                <!-- Populated by JS -->
+            </div>
+        </section>
+
+        <!-- Charts Section -->
+        <section id="charts-section" class="section">
+            <h2 class="section-title">📈 Weekly Analytics <span class="badge-historical">LAST 7 DAYS</span></h2>
+            <p class="section-subtitle">Historical traffic patterns and trends from the past week — not real-time</p>
+            <div class="charts-grid">
+                <div class="chart-container">
+                    <h3>Day-wise Parking Entries</h3>
+                    <canvas id="daily-chart"></canvas>
+                </div>
+                <div class="chart-container">
+                    <h3>Peak Hours Distribution</h3>
+                    <canvas id="hourly-chart"></canvas>
+                </div>
+            </div>
+            <div class="charts-grid" style="margin-top: 1.5rem;">
+                <div class="chart-container">
+                    <h3>Lot-wise Comparison <span class="chart-note">(Total entries over 7 days)</span></h3>
+                    <canvas id="lot-chart"></canvas>
+                </div>
+                <div class="chart-container">
+                    <div class="stats-box">
+                        <h3>Key Metrics</h3>
+                        <div class="stat-item">
+                            <span class="stat-label">Total Events (7 days)</span>
+                            <span class="stat-value" id="stat-total-events">--</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-label">Avg Parking Duration</span>
+                            <span class="stat-value" id="stat-avg-duration">--</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-label">Overstay Violations</span>
+                            <span class="stat-value stat-warning" id="stat-overstays">--</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-label">Busiest Lot</span>
+                            <span class="stat-value" id="stat-busiest-lot">--</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Recent Events Table -->
+        <section id="events-section" class="section">
+            <h2 class="section-title">📋 Recent Parking Events</h2>
+            <div class="table-container">
+                <table id="events-table">
+                    <thead>
+                        <tr>
+                            <th>Vehicle</th>
+                            <th>Lot</th>
+                            <th>Space</th>
+                            <th>Entry Time</th>
+                            <th>Exit Time</th>
+                            <th>Duration (hrs)</th>
+                        </tr>
+                    </thead>
+                    <tbody id="events-body">
+                        <!-- Populated by JS -->
+                    </tbody>
+                </table>
+            </div>
+        </section>
+    </main>
+
+    <!-- Footer -->
+    <footer>
+        <p>Smart City Parking Management System • IoT Case Study • Built with FastAPI + SQLite + Pandas</p>
+    </footer>
+
+    <script>
+        // Hide Admin link when admin is already logged in (cookie present)
+        (function(){
+            function getCookie(name){
+                const v = document.cookie.match('(^|;)\\s*' + name + '\\s*=\\s*([^;]+)');
+                return v ? v.pop() : '';
+            }
+            if(getCookie('admin_token')){
+                const el = document.getElementById('admin-link');
+                if(el) el.style.display = 'none';
+            }
+        })();
+    </script>
+    <script src="/static/script.js"></script>
+</body>
+
+</html>

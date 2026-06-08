@@ -1,0 +1,451 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard - Smart City Parking</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #0a0e1a 0%, #1a1f3a 100%);
+            color: #e2e8f0;
+        }
+
+        header {
+            background: rgba(15, 23, 42, 0.8);
+            border-bottom: 1px solid rgba(148, 163, 184, 0.1);
+            padding: 1.5rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            backdrop-filter: blur(10px);
+        }
+
+        header h1 {
+            font-size: 1.5rem;
+            background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .user-name {
+            font-weight: 500;
+        }
+
+        .logout-btn {
+            background: rgba(239, 68, 68, 0.1);
+            color: #fca5a5;
+            border: 1px solid rgba(239, 68, 68, 0.3);
+            padding: 0.5rem 1rem;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 500;
+        }
+
+        .logout-btn:hover {
+            background: rgba(239, 68, 68, 0.2);
+            border-color: rgba(239, 68, 68, 0.5);
+        }
+
+        main {
+            padding: 2rem;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .page-title {
+            font-size: 1.75rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .page-subtitle {
+            color: #94a3b8;
+            margin-bottom: 2rem;
+        }
+
+        .section {
+            background: rgba(15, 23, 42, 0.8);
+            border: 1px solid rgba(148, 163, 184, 0.1);
+            border-radius: 12px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            backdrop-filter: blur(10px);
+        }
+
+        .section-title {
+            font-size: 1.25rem;
+            margin-bottom: 1.5rem;
+            color: #e2e8f0;
+        }
+
+        .pagination {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 0.5rem;
+            margin-top: 2rem;
+        }
+
+        .pagination button,
+        .pagination span {
+            padding: 0.5rem 0.75rem;
+            border-radius: 6px;
+            border: 1px solid rgba(148, 163, 184, 0.2);
+            background: rgba(30, 41, 59, 0.5);
+            color: #e2e8f0;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 0.9rem;
+        }
+
+        .pagination button:hover:not(:disabled) {
+            background: rgba(59, 130, 246, 0.2);
+            border-color: #3b82f6;
+        }
+
+        .pagination button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .pagination span {
+            background: transparent;
+            border: none;
+            cursor: default;
+        }
+
+        .pagination .active {
+            background: #3b82f6;
+            border-color: #3b82f6;
+            font-weight: 600;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.9rem;
+        }
+
+        th {
+            text-align: left;
+            padding: 1rem;
+            border-bottom: 2px solid rgba(148, 163, 184, 0.1);
+            font-weight: 600;
+            color: #cbd5e1;
+            background: rgba(30, 41, 59, 0.3);
+        }
+
+        td {
+            padding: 0.75rem 1rem;
+            border-bottom: 1px solid rgba(148, 163, 184, 0.05);
+        }
+
+        tr:hover {
+            background: rgba(59, 130, 246, 0.05);
+        }
+
+        .status-parked {
+            color: #fca5a5;
+            font-weight: 500;
+        }
+
+        .overstay {
+            color: #f59e0b;
+            font-weight: 600;
+        }
+
+        .pagination-info {
+            text-align: center;
+            margin-bottom: 1rem;
+            color: #94a3b8;
+            font-size: 0.9rem;
+        }
+
+        .loading {
+            text-align: center;
+            color: #94a3b8;
+            padding: 2rem;
+        }
+
+        .spinner {
+            display: inline-block;
+            width: 30px;
+            height: 30px;
+            border: 3px solid rgba(59, 130, 246, 0.3);
+            border-radius: 50%;
+            border-top-color: #3b82f6;
+            animation: spin 0.8s linear infinite;
+            margin-bottom: 1rem;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .per-page-selector {
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .per-page-selector select {
+            padding: 0.5rem;
+            border: 1px solid rgba(148, 163, 184, 0.2);
+            border-radius: 6px;
+            background: rgba(30, 41, 59, 0.5);
+            color: #e2e8f0;
+            cursor: pointer;
+        }
+    </style>
+</head>
+
+<body>
+    <header>
+        <h1>🔐 Admin Dashboard</h1>
+        <div class="user-info">
+            <span class="user-name">👤 Admin</span>
+            <button class="logout-btn" id="logout-btn">Logout</button>
+        </div>
+    </header>
+
+    <main>
+        <h2 class="page-title">Parking Events Manager</h2>
+        <p class="page-subtitle">View and manage all parking events with pagination</p>
+
+        <div class="section">
+            <h3 class="section-title">📋 All Parking Events</h3>
+
+            <div class="per-page-selector">
+                <label for="per-page">Items per page:</label>
+                <select id="per-page">
+                    <option value="10">10</option>
+                    <option value="20">20</option>
+                    <option value="50">50</option>
+                    <option value="100">100</option>
+                </select>
+            </div>
+
+            <div id="pagination-info" class="pagination-info"></div>
+
+            <div id="loading" class="loading" style="display: none;">
+                <div class="spinner"></div>
+                <p>Loading events...</p>
+            </div>
+
+            <div id="content" style="display: none;">
+                <table id="events-table">
+                    <thead>
+                        <tr>
+                            <th>Vehicle</th>
+                            <th>Parking Lot</th>
+                            <th>Space</th>
+                            <th>Entry Time</th>
+                            <th>Exit Time</th>
+                            <th>Duration (hrs)</th>
+                            <th>Allowed (hrs)</th>
+                        </tr>
+                    </thead>
+                    <tbody id="events-body">
+                    </tbody>
+                </table>
+
+                <div class="pagination" id="pagination">
+                    <!-- Populated by JS -->
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        let currentPage = 1;
+        let perPage = 10;
+
+        // Check if user is authenticated
+        function checkAuth() {
+            const token = localStorage.getItem('admin_token');
+            if (!token) {
+                window.location.href = '/admin';
+            }
+        }
+
+        // Load events
+        async function loadEvents(page = 1) {
+            const loading = document.getElementById('loading');
+            const content = document.getElementById('content');
+
+            loading.style.display = 'block';
+            content.style.display = 'none';
+
+            try {
+                const response = await fetch(`/api/events?page=${page}&per_page=${perPage}`, {
+                    headers: {
+                        'Authorization': `Bearer ${localStorage.getItem('admin_token')}`
+                    }
+                });
+
+                if (response.status === 401) {
+                    window.location.href = '/admin';
+                    return;
+                }
+
+                const data = await response.json();
+
+                // Populate table
+                const tbody = document.getElementById('events-body');
+                tbody.innerHTML = '';
+
+                data.items.forEach(event => {
+                    const entryDate = new Date(event.entry_time);
+                    const entryStr = entryDate.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' }) +
+                        ' (' + entryDate.toLocaleDateString('en-IN', { day: 'numeric', month: 'short' }) + ')';
+
+                    let exitStr = '—';
+                    if (event.exit_time) {
+                        const exitDate = new Date(event.exit_time);
+                        exitStr = exitDate.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' }) +
+                            ' (' + exitDate.toLocaleDateString('en-IN', { day: 'numeric', month: 'short' }) + ')';
+                    } else {
+                        exitStr = '<span class="status-parked">Still Parked</span>';
+                    }
+
+                    const isOverstay = event.duration_hours && event.duration_hours > event.allowed_duration_hours;
+                    const durationStr = event.duration_hours ?
+                        `<span class="${isOverstay ? 'overstay' : ''}">${event.duration_hours.toFixed(1)} hrs ${isOverstay ? '⚠️' : ''}</span>` : '—';
+
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td><strong>${event.vehicle_number}</strong></td>
+                        <td>${event.lot_name}</td>
+                        <td>${event.space_number}</td>
+                        <td>${entryStr}</td>
+                        <td>${exitStr}</td>
+                        <td>${durationStr}</td>
+                        <td>${event.allowed_duration_hours}</td>
+                    `;
+                    tbody.appendChild(row);
+                });
+
+                // Update pagination info
+                const paginationInfo = document.getElementById('pagination-info');
+                paginationInfo.textContent = `Showing ${(page - 1) * perPage + 1}-${Math.min(page * perPage, data.total)} of ${data.total} events`;
+
+                // Render pagination buttons
+                renderPagination(data.page, data.total_pages);
+
+                currentPage = page;
+                loading.style.display = 'none';
+                content.style.display = 'block';
+            } catch (error) {
+                console.error('Error loading events:', error);
+                loading.style.display = 'none';
+                content.innerHTML = '<p>Error loading events. Please try again.</p>';
+                content.style.display = 'block';
+            }
+        }
+
+        function renderPagination(currentPageNum, totalPages) {
+            const pagination = document.getElementById('pagination');
+            pagination.innerHTML = '';
+
+            // Previous button
+            if (currentPageNum > 1) {
+                const prevBtn = document.createElement('button');
+                prevBtn.textContent = '← Previous';
+                prevBtn.onclick = () => loadEvents(currentPageNum - 1);
+                pagination.appendChild(prevBtn);
+            }
+
+            // Page numbers
+            const maxButtons = 7;
+            let startPage = Math.max(1, currentPageNum - Math.floor(maxButtons / 2));
+            let endPage = Math.min(totalPages, startPage + maxButtons - 1);
+
+            if (endPage - startPage + 1 < maxButtons) {
+                startPage = Math.max(1, endPage - maxButtons + 1);
+            }
+
+            if (startPage > 1) {
+                const firstBtn = document.createElement('button');
+                firstBtn.textContent = '1';
+                firstBtn.onclick = () => loadEvents(1);
+                pagination.appendChild(firstBtn);
+
+                if (startPage > 2) {
+                    const dots = document.createElement('span');
+                    dots.textContent = '...';
+                    pagination.appendChild(dots);
+                }
+            }
+
+            for (let i = startPage; i <= endPage; i++) {
+                const btn = document.createElement('button');
+                btn.textContent = i;
+                if (i === currentPageNum) {
+                    btn.className = 'active';
+                    btn.disabled = true;
+                } else {
+                    btn.onclick = () => loadEvents(i);
+                }
+                pagination.appendChild(btn);
+            }
+
+            if (endPage < totalPages) {
+                if (endPage < totalPages - 1) {
+                    const dots = document.createElement('span');
+                    dots.textContent = '...';
+                    pagination.appendChild(dots);
+                }
+
+                const lastBtn = document.createElement('button');
+                lastBtn.textContent = totalPages;
+                lastBtn.onclick = () => loadEvents(totalPages);
+                pagination.appendChild(lastBtn);
+            }
+
+            // Next button
+            if (currentPageNum < totalPages) {
+                const nextBtn = document.createElement('button');
+                nextBtn.textContent = 'Next →';
+                nextBtn.onclick = () => loadEvents(currentPageNum + 1);
+                pagination.appendChild(nextBtn);
+            }
+        }
+
+        // Per-page change handler
+        document.getElementById('per-page').addEventListener('change', (e) => {
+            perPage = parseInt(e.target.value);
+            loadEvents(1);
+        });
+
+        // Logout
+        document.getElementById('logout-btn').addEventListener('click', () => {
+            // Clear token cookie and local storage
+            document.cookie = 'admin_token=; Max-Age=0; path=/';
+            localStorage.removeItem('admin_token');
+            window.location.href = '/admin';
+        });
+
+        // Load events on page load
+        checkAuth();
+        loadEvents(1);
+    </script>
+</body>
+
+</html>
