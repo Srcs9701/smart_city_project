@@ -26,6 +26,7 @@
             </div>
             <div class="header-status">
                 <a id="admin-link" href="/admin" style="margin-right: 1rem; color: #3b82f6; text-decoration: none; padding: 0.5rem 1rem; border: 1px solid #3b82f6; border-radius: 6px; transition: all 0.3s ease;" onmouseover="this.style.background='rgba(59, 130, 246, 0.1)'" onmouseout="this.style.background='transparent'">🔐 Admin</a>
+                <button id="logout-btn" style="display:none; margin-right: 1rem; padding: 0.45rem 0.85rem; border-radius:6px; border:1px solid rgba(239,68,68,0.2); background: rgba(239,68,68,0.06); color:#fca5a5; cursor:pointer;">Logout</button>
                 <span class="live-dot"></span>
                 <span id="last-updated">Loading...</span>
             </div>
@@ -142,15 +143,29 @@
     </footer>
 
     <script>
-        // Hide Admin link when admin is already logged in (cookie present)
+        // Show logout when admin is logged in; hide admin link
         (function(){
             function getCookie(name){
                 const v = document.cookie.match('(^|;)\\s*' + name + '\\s*=\\s*([^;]+)');
                 return v ? v.pop() : '';
             }
-            if(getCookie('admin_token')){
-                const el = document.getElementById('admin-link');
-                if(el) el.style.display = 'none';
+            const token = getCookie('admin_token');
+            const adminLink = document.getElementById('admin-link');
+            const logoutBtn = document.getElementById('logout-btn');
+
+            if(token) {
+                if(adminLink) adminLink.style.display = 'none';
+                if(logoutBtn) {
+                    logoutBtn.style.display = 'inline-block';
+                    logoutBtn.addEventListener('click', () => {
+                        document.cookie = 'admin_token=; Max-Age=0; path=/';
+                        localStorage.removeItem('admin_token');
+                        localStorage.removeItem('admin_username');
+                        window.location.href = '/admin';
+                    });
+                }
+            } else {
+                if(logoutBtn) logoutBtn.style.display = 'none';
             }
         })();
     </script>
